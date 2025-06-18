@@ -1,0 +1,30 @@
+body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f1f1; }
+
+#auth-section { width: 100%; max-width: 400px; margin: 60px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+
+#auth-section input, #auth-section select, #auth-section button { width: 100%; margin: 10px 0; padding: 10px; font-size: 16px; }
+
+#main-app { display: flex; height: 100vh; }
+
+.sidebar { width: 300px; background-color: #ffffff; border-right: 1px solid #ccc; display: flex; flex-direction: column; padding: 10px; }
+
+.profile-section { text-align: center; padding: 10px; }
+
+.profile-section img { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; }
+
+.chat-list { flex-grow: 1; overflow-y: auto; margin-top: 10px; }
+
+.chat-window { flex-grow: 1; display: flex; flex-direction: column; background-color: #e6e6e6; }
+
+.chat-header { background-color: #075e54; color: white; padding: 15px; font-size: 20px; display: flex; justify-content: space-between; align-items: center; }
+
+.chat-body { flex-grow: 1; padding: 15px; overflow-y: auto; background-color: #f5f5f5; }
+
+.chat-input { display: flex; padding: 10px; background: white; }
+
+.chat-input input { flex-grow: 1; padding: 10px; font-size: 16px; }
+
+.chat-input button { padding: 10px 20px; font-size: 16px; background-color: #128c7e; color: white; border: none; margin-left: 10px; cursor: pointer; }
+
+.chat-input button:hover { background-color: #075e54; }
+
