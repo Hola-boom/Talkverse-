@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talkverse</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script defer src="firebase.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div id="auth-section">
+    <h2>Talkverse Login</h2>
+    <input type="text" id="name" placeholder="Your Name" required />
+    <input type="number" id="age" placeholder="Your Age" required />
+    <select id="gender">
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+    </select>
+    <input type="text" id="phone" placeholder="Phone Number (+91...)" required />
+    <button onclick="sendOTP()">Send OTP</button>
+    <div id="otp-section" style="display: none">
+      <input type="text" id="otp" placeholder="Enter OTP" />
+      <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+  </div>  <div id="main-app" style="display: none">
+    <div class="sidebar">
+      <div class="profile-section">
+        <img id="user-dp" src="default-dp.png" />
+        <input type="file" id="upload-dp" />
+        <h3 id="user-name"></h3>
+      </div>
+      <div class="chat-list" id="chat-list"></div>
+    </div><div class="chat-window">
+  <div class="chat-header">
+    <h2 id="chat-title">Select a Chat</h2>
+    <button id="call-btn">📞 Call</button>
+  </div>
+  <div class="chat-body" id="chat-body"></div>
+  <div class="chat-input">
+    <input type="text" id="message" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+  </div>
+</body>
+</html>
