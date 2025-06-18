@@ -1,9 +1,40 @@
-// firebase.js
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"; import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js"; import { getFirestore } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"; import { getStorage } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js";
+const auth = getAuth();
 
-const firebaseConfig = { apiKey: "AIzaSyDuWXeF8rIlDrQluZo514FzarFIvIOrOrw", authDomain: "talkverse-49451.firebaseapp.com", projectId: "talkverse-49451", storageBucket: "talkverse-49451.appspot.com", messagingSenderId: "953700215867", appId: "1:953700215867:web:58540984c67dfa71ef401e", measurementId: "G-XY7JKZB9HH" };
+// Recaptcha
+window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
+  size: 'invisible',
+  callback: () => {
+    // reCAPTCHA solved - submit the form
+    onSignInSubmit();
+  }
+}, auth);
 
-// Initialize Firebase 
-export const app = initializeApp(firebaseConfig); export const auth = getAuth(app); export const db = getFirestore(app); export const storage = getStorage(app);
+// Phone auth
+function sendOTP() {
+  const phoneNumber = "+91XXXXXXXXXX";
+  const appVerifier = window.recaptchaVerifier;
 
+  signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+    .then((confirmationResult) => {
+      window.confirmationResult = confirmationResult;
+      alert("OTP Sent!");
+    })
+    .catch((error) => {
+      console.error("OTP Error:", error.message);
+      alert("OTP Failed: " + error.message);
+    });
+}
+
+// Confirm
+function verifyOTP(code) {
+  window.confirmationResult.confirm(code)
+    .then((result) => {
+      const user = result.user;
+      alert("Verified Successfully");
+    })
+    .catch((error) => {
+      alert("Incorrect OTP: " + error.message);
+    });
+}
