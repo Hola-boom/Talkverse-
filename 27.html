@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talkverse</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #101926, #0f172a);
+      color: #e0e6ed;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #0d1424;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #00bcd4;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      letter-spacing: 1px;
+    }
+
+    .tab-buttons {
+      display: flex;
+      background-color: #19253b;
+      border-bottom: 2px solid #00bcd4;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      color: #ccc;
+      transition: all 0.3s ease;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #00bcd4;
+      background-color: #22304c;
+      color: #ffffff;
+    }
+
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png');
+      background-size: 200px;
+    }
+    .group-item,
+    .message {
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .group-item {
+      background-color: #1e2b45;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .group-item:hover {
+      background-color: #2d3e62;
+    }
+
+    .message {
+      opacity: 0;
+      transform: translateY(10px);
+      animation: slideIn 0.3s ease forwards;
+      position: relative;
+    }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-out {
+      animation: fadeOut 0.3s ease forwards;
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.8); }
+    }
+
+    .message.you {
+      background-color: #dcf8c6;
+      color: #000;
+      align-self: flex-end;
+      margin-left: auto;
+      text-align: right;
+      border-top-right-radius: 0;
+    }
+
+    .message.other {
+      background-color: #e1f0ff;
+      color: #000;
+      align-self: flex-start;
+      margin-right: auto;
+      text-align: left;
+      border-top-left-radius: 0;
+    }
+
+    .message .meta {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-top: 6px;
+      display: block;
+    }
+
+    .message strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 12px;
+      background-color: #1e2b45;
+      border-top: 1px solid #2f3f5c;
+    }
+
+    input[type='text'] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background-color: #121a2e;
+      color: white;
+      outline: none;
+      font-size: 14px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 10px 16px;
+      background-color: #00bcd4;
+      border: none;
+      border-radius: 6px;
+      color: #002f3f;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #00acc1;
+    }
+
+    .group-actions {
+      margin-top: 6px;
+    }
+
+    .group-actions button {
+      margin-right: 6px;
+      background-color: #455a64;
+      color: white;
+    }
+
+    .group-actions button:hover {
+      background-color: #607d8b;
+    }
+
+    #typingIndicator {
+      font-size: 13px;
+      margin: 8px 0;
+      color: #9ec8e6;
+    }
+  </style>
+</head>
+<body>
+  <header>Talkverse</header>
+  <div class="tab-buttons">
+    <div class="tab active" onclick="switchTab('groups')" id="groups-tab">Groups</div>
+    <div class="tab" onclick="switchTab('chat')" id="chat-tab">Chat</div>
+    <div class="tab" onclick="switchTab('private')" id="private-tab">1:1 Chat</div>
+  </div>
+
+  <div id="groups" class="tab-content">
+    <input type="text" id="newGroupName" placeholder="Enter group name" />
+    <button onclick="createGroup()">Create Group</button>
+    <div id="groupList"></div>
+  </div>
+
+  <div id="chat" class="tab-content" style="display: none">
+    <h2 id="currentGroupName"></h2>
+    <p id="groupMembers"></p>
+    <div id="chatMessages" style="flex: 1; overflow-y: auto; max-height: 60vh;"></div>
+    <div id="typingIndicator"></div>
+    <div class="input-area">
+      <input type="text" id="messageInput" placeholder="Type your message..." oninput="setTyping(true)" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <div id="private" class="tab-content" style="display: none">
+    <input type="text" id="privateUser" placeholder="Enter username to chat" />
+    <button onclick="startPrivateChat()">Start Chat</button>
+    <h3 id="privateChatName"></h3>
+    <div id="privateMessages" style="flex: 1; overflow-y: auto; max-height: 60vh;"></div>
+    <div class="input-area">
+      <input type="text" id="privateInput" placeholder="Type a private message" />
+      <button onclick="sendPrivateMessage()">Send</button>
+    </div>
+  </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuWXeF8rIlDrQluZo514FzarFIvIOrOrw",
+      authDomain: "talkverse-49451.firebaseapp.com",
+      databaseURL: "https://talkverse-49451-default-rtdb.firebaseio.com",
+      projectId: "talkverse-49451",
+      storageBucket: "talkverse-49451.appspot.com",
+      messagingSenderId: "953700215867",
+      appId: "1:953700215867:web:58540984c67dfa71ef401e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const username = localStorage.getItem('tv_username') || prompt("Enter your name");
+    localStorage.setItem('tv_username', username);
+
+    let currentGroupId = null;
+    let currentPrivateUser = null;
+    let typingTimeout;
+
+    const userStatusRef = db.ref('status/' + username);
+    db.ref('.info/connected').on('value', snap => {
+      if (snap.val()) {
+        userStatusRef.onDisconnect().set({ state: 'offline', last_changed: Date.now() });
+        userStatusRef.set({ state: 'online', last_changed: Date.now() });
+      }
+    });
+
+    function switchTab(tab) {
+      ['groups', 'chat', 'private'].forEach(id => {
+        document.getElementById(id).style.display = (tab === id) ? 'block' : 'none';
+        document.getElementById(id + '-tab').classList.toggle('active', tab === id);
+      });
+    }
+
+    function createGroup() {
+      const name = document.getElementById('newGroupName').value.trim();
+      if (!name) return;
+      const groupRef = db.ref('groups').push();
+      groupRef.set({ name, creator: username });
+      db.ref(`groups/${groupRef.key}/members/${username}`).set(true);
+    }
+
+    function loadGroups() {
+      const list = document.getElementById('groupList');
+      db.ref('groups').on('value', snap => {
+        list.innerHTML = '';
+        snap.forEach(groupSnap => {
+          const group = groupSnap.val();
+          const key = groupSnap.key;
+          const div = document.createElement('div');
+          div.className = 'group-item';
+          div.innerHTML = `<strong>${group.name}</strong>`;
+          div.onclick = () => joinGroup(key, group.name);
+
+          const actions = document.createElement('div');
+          actions.className = 'group-actions';
+
+          const joinBtn = document.createElement('button');
+          joinBtn.textContent = 'Join';
+          joinBtn.onclick = (e) => {
+            e.stopPropagation();
+            db.ref(`groups/${key}/members/${username}`).set(true);
+          };
+          actions.appendChild(joinBtn);
+
+          if (group.creator === username) {
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Edit';
+            editBtn.onclick = (e) => {
+              e.stopPropagation();
+              const newName = prompt("New group name:", group.name);
+              if (newName) db.ref(`groups/${key}/name`).set(newName);
+            };
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm("Delete this group?")) db.ref(`groups/${key}`).remove();
+            };
+            actions.appendChild(editBtn);
+            actions.appendChild(deleteBtn);
+          } else {
+            const leaveBtn = document.createElement('button');
+            leaveBtn.textContent = 'Leave';
+            leaveBtn.onclick = (e) => {
+              e.stopPropagation();
+              db.ref(`groups/${key}/members/${username}`).remove();
+            };
+            actions.appendChild(leaveBtn);
+          }
+
+          div.appendChild(actions);
+          list.appendChild(div);
+        });
+      });
+    }
+
+    function joinGroup(key, name) {
+      currentGroupId = key;
+      db.ref(`groups/${key}/members/${username}`).set(true);
+      document.getElementById('currentGroupName').innerText = name;
+      document.getElementById('chatMessages').innerHTML = '';
+      switchTab('chat');
+      loadGroupMembers(key);
+      db.ref(`messages/${key}`).off();
+      db.ref(`messages/${key}`).on('child_added', snap => {
+        const msg = snap.val();
+        displayMessage(msg, snap.key);
+      });
+    }
+
+    function loadGroupMembers(groupId) {
+      db.ref(`groups/${groupId}/members`).once('value', snap => {
+        const members = snap.val() || {};
+        const memberNames = Object.keys(members);
+        const promises = memberNames.map(name =>
+          db.ref(`status/${name}`).once('value').then(statSnap => {
+            const status = statSnap.val();
+            const state = status?.state === 'online' ? '🟢 Online' : `⚫ Last seen ${timeAgo(status?.last_changed)}`;
+            return `👤 ${name} - ${state}`;
+          })
+        );
+        Promise.all(promises).then(results => {
+          document.getElementById('groupMembers').innerText = results.join('\\n');
+        });
+      });
+    }
+
+    function timeAgo(timestamp) {
+      if (!timestamp) return 'unknown';
+      const diff = Math.floor((Date.now() - timestamp) / 60000);
+      return diff < 1 ? 'just now' : `${diff} min ago`;
+    }
+    function sendMessage() {
+      const msg = document.getElementById('messageInput').value.trim();
+      if (!msg || !currentGroupId) return;
+      const messageRef = db.ref(`messages/${currentGroupId}`).push();
+      messageRef.set({ sender: username, text: msg, timestamp: Date.now(), status: 'sent' });
+      document.getElementById('messageInput').value = '';
+      setTyping(false);
+    }
+
+    function setTyping(state) {
+      if (!currentGroupId) return;
+      db.ref(`typing/${currentGroupId}/${username}`).set(state);
+      clearTimeout(typingTimeout);
+      if (state) {
+        typingTimeout = setTimeout(() => {
+          db.ref(`typing/${currentGroupId}/${username}`).remove();
+        }, 3000);
+      }
+    }
+
+    function displayMessage(msg, key) {
+      const container = document.getElementById('chatMessages');
+      const div = document.createElement('div');
+      const isYou = msg.sender === username;
+      div.className = 'message ' + (isYou ? 'you' : 'other');
+      const ticks = isYou ? `<span style='font-size:10px'>${msg.status === 'seen' ? '✓✓' : '✓'}</span>` : '';
+      div.innerHTML = `
+        <strong>${isYou ? 'You' : msg.sender}</strong>
+        <div>${msg.text} ${ticks}</div>
+        <span class="meta">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+      `;
+
+      if (isYou) {
+        div.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          if (confirm('Delete this message?')) {
+            div.classList.add('fade-out');
+            setTimeout(() => {
+              db.ref(`messages/${currentGroupId}/${key}`).remove();
+              div.remove();
+            }, 300);
+          }
+        });
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function startPrivateChat() {
+      currentPrivateUser = document.getElementById('privateUser').value.trim();
+      if (!currentPrivateUser || currentPrivateUser === username) return;
+      document.getElementById('privateChatName').innerText = `Chat with ${currentPrivateUser}`;
+      document.getElementById('privateMessages').innerHTML = '';
+      switchTab('private');
+      const id = [username, currentPrivateUser].sort().join('_');
+      db.ref('private/' + id).off();
+      db.ref('private/' + id).on('child_added', snap => {
+        const msg = snap.val();
+        const div = document.createElement('div');
+        div.className = 'message ' + (msg.sender === username ? 'you' : 'other');
+        div.innerHTML = `<strong>${msg.sender === username ? 'You' : msg.sender}</strong><div>${msg.text}</div><span class="meta">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
+        document.getElementById('privateMessages').appendChild(div);
+      });
+    }
+
+    function sendPrivateMessage() {
+      const text = document.getElementById('privateInput').value.trim();
+      if (!text || !currentPrivateUser) return;
+      const id = [username, currentPrivateUser].sort().join('_');
+      const ref = db.ref('private/' + id).push();
+      ref.set({ sender: username, text, timestamp: Date.now() });
+      document.getElementById('privateInput').value = '';
+    }
+
+    loadGroups();
+  </script>
+</body>
+</html>
